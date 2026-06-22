@@ -62,9 +62,18 @@ Pick exactly one `disposition`:
 - "support": a genuine support request from a customer. Then you MUST also set:
     - "sub_type": one of "incident" (something is broken), "service_request"
       (a standard operational ask like access/export/config), "question" (how-to).
-    - "priority": one of "P1" (production down/critical/data loss), "P2" (major
-      function impaired, no workaround), "P3" (minor or workaround exists),
-      "P4" (trivial/cosmetic/low urgency).
+    - "priority": choose using these official SLA definitions:
+        - "P1" Critical Incident: the platform is unavailable or a critical business
+          process is completely blocked. E.g. complete system outage, login down for
+          all users, AI workflows non-functional, data inaccessible.
+        - "P2" High Priority: major functionality is impacted, a workaround may exist.
+          E.g. report generation failures, significant workflow issues, performance
+          degradation, integration failures.
+        - "P3" Medium Priority: a non-critical issue affecting a limited number of
+          users or functionality. E.g. configuration issues, user access issues,
+          minor defects, training assistance.
+        - "P4" Low Priority: general inquiries or cosmetic issues. E.g. how-to
+          questions, minor UI issues, documentation requests.
 - "enhancement": a request for a NEW feature or capability that does not exist yet.
     Do NOT set priority or sub_type. This goes to a separate product review gate, not support.
 - "redirect": legitimate mail that was sent to the wrong place (e.g. pricing, sales,
