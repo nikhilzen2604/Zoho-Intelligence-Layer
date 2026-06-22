@@ -71,7 +71,7 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
         if c.priority:
             head += f"/{c.priority.value}"
         print(head + f"  (conf {c.confidence:.2f})")
-        print(f"     plan: fields={plan.field_updates} tags={plan.tags}"
+        print(f"     plan: fields={plan.field_updates}"
               f" redirect={plan.redirect_to} review={plan.needs_review}"
               f" pending={plan.pending_decision}")
 
@@ -83,8 +83,6 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
         # --- live writes ---
         if plan.field_updates:
             client.update_ticket(tid, plan.field_updates)
-        if plan.tags:
-            client.add_tags(tid, plan.tags)
         if plan.comment:
             client.add_comment(tid, plan.comment, is_public=False)
         if plan.redirect_to:

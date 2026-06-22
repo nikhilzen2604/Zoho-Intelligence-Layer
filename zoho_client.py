@@ -109,10 +109,11 @@ class ZohoClient:
         )
 
     def add_tags(self, ticket_id: str, tags: list[str]) -> Any:
-        """Associate tag names with a ticket (best-effort; tags survive on free)."""
+        """Associate tags with a ticket. Zoho's associateTag wants a list of plain
+        strings and auto-creates any tag that doesn't exist yet. Tags survive on free."""
         return self._request(
             "POST", f"/tickets/{ticket_id}/associateTag",
-            json={"tags": [{"name": t} for t in tags]},
+            json={"tags": list(tags)},
         )
 
 
