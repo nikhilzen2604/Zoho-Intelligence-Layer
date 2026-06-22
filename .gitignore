@@ -9,6 +9,7 @@ __pycache__/
 .venv/
 venv/
 
-# audit / logs
+# audit / logs / local state
 *.log
 audit*.jsonl
+processed_ids.json
