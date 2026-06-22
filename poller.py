@@ -18,6 +18,7 @@ import json
 import time
 from pathlib import Path
 
+import audit
 from classifier import classify
 from mapping import plan_actions
 from zoho_client import ZohoClient
@@ -76,6 +77,7 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
 
         if dry_run:
             print("     DRY-RUN: nothing written")
+            audit.log_decision(t, c, plan, mode="dry-run", applied=False)
             continue
 
         # --- live writes ---
@@ -90,7 +92,8 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
 
         processed.add(tid)
         _save_processed(processed)
-        print("     applied")
+        audit.log_decision(t, c, plan, mode="live", applied=True)
+        print("     applied + logged")
 
 
 def main() -> None:
