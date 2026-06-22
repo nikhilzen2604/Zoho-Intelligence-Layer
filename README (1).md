@@ -22,7 +22,7 @@ Zoho is the next phase.
 ## Scope (decided, do not re-open)
 
 - A ticket enters one of two ways: created on Zoho directly (customer portal or embedded
-  web form), or sent by email to `support@zenalyst.com`. Both converge into one Zoho ticket.
+  web form), or sent by email to `support@zenalyst.ai`. Both converge into one Zoho ticket.
 - **Out of scope:** emails that bypass the support address (landing in a salesperson's or
   founder's inbox). We are not handling that "leaked inbox" case for now.
 - **Out of scope:** any timeline or phasing. This is a build, not a schedule.
@@ -174,3 +174,116 @@ is a later phase that begins when the plan is upgraded to Professional.
 The AI classifies; Zoho orchestrates. Keep the classifier free of Zoho specifics, keep the
 Zoho specifics out of the classifier, and keep the trigger (poll now, webhook later) isolated
 so the rest of the system never has to change when it switches.
+
+---
+
+# Appendix A — SLA, Governance, and Service Standards
+
+The operating agreement around the system: how fast we respond, how the team stays
+coordinated, and what customers can expect. The classifier's priority decisions
+(P1–P4) map directly onto A.1 and A.3.
+
+## A.1 Priority & First Response (summary)
+
+| Priority | Description            | First Response   |
+|----------|------------------------|------------------|
+| P1       | System unavailable     | 1 Hour           |
+| P2       | Critical functionality | 4 Hours          |
+| P3       | General issue          | 1 Business Day   |
+| P4       | Question / Enhancement | 2 Business Days  |
+
+> Within the **support** path, P4 covers questions. **Enhancements** branch off on their
+> own path and carry **no support SLA** (see A.3).
+
+## A.2 Daily Governance Meeting
+
+A daily standup to keep support, delivery, and engineering aligned.
+
+**Agenda:**
+
+1. **Customer Support Review**
+   - New tickets raised in the last 24 hours
+   - Open P1/P2 incidents
+   - Ageing tickets requiring attention
+   - Escalations or customer concerns
+   - SLA risks
+2. **Delivery Review**
+   - Open feature requests
+   - Feature assessments awaiting review
+   - Development progress on approved enhancements
+   - UAT activities
+   - Upcoming releases
+3. **Engineering Review**
+   - Current sprint priorities
+   - Development blockers
+   - Production issues
+   - Technical dependencies
+4. **Customer Communication Review**
+   - Customer updates required today
+   - Release communications
+   - Open action items from customer meetings
+5. **Decisions & Actions**
+   - Ownership assignments
+   - Escalations
+   - Due dates
+   - Follow-up actions
+
+## A.3 Service Level Agreement (SLA) Matrix
+
+### Business Hours
+
+- **Support Hours:** Monday – Friday, 9:00 AM – 6:00 PM IST
+- **Support Channel:** `support@zenalyst.ai`
+
+### Priority Definitions
+
+#### P1 — Critical Incident
+- **Definition:** The platform is unavailable, or a critical business process is completely blocked.
+- **Examples:** Complete system outage · Login unavailable for all users · AI workflows non-functional · Data inaccessible
+- **Response Time:** Within 1 Hour
+- **Target Resolution Time:** Within 4 Business Hours
+- **Escalation:** Immediate notification to the Engineering Lead
+
+#### P2 — High Priority
+- **Definition:** Major functionality is impacted, but a workaround may exist.
+- **Examples:** Report generation failures · Significant workflow issues · Performance degradation · Integration failures
+- **Response Time:** Within 4 Business Hours
+- **Target Resolution Time:** Within 1 Business Day
+- **Escalation:** Engineering Lead notified
+
+#### P3 — Medium Priority
+- **Definition:** Non-critical issue impacting a limited number of users or functionality.
+- **Examples:** Configuration issues · User access issues · Minor defects · Training assistance
+- **Response Time:** Within 1 Business Day
+- **Target Resolution Time:** Within 3 Business Days
+- **Escalation:** As required
+
+#### P4 — Low Priority
+- **Definition:** General inquiries, enhancement requests, or cosmetic issues.
+- **Examples:** How-to questions · Enhancement requests · Minor UI issues · Documentation requests
+- **Response Time:** Within 2 Business Days
+- **Target Resolution Time:** Best effort
+- **Escalation:** Not required
+
+### Enhancement Requests
+
+Enhancement requests **do not** fall under support SLAs.
+
+**Process:**
+1. Logged into Zoho Desk
+2. Reviewed by Head of Delivery & Customer Success
+3. Assessed for business value and roadmap alignment
+4. Prioritised during Product Review meetings
+5. Approved enhancements moved into the GitHub backlog
+
+**Customer Status:** *Logged for Product Review.* No delivery commitment is made until
+approved and prioritised.
+
+### Customer Communication Standards
+
+- Every ticket receives an acknowledgement.
+- Customers receive updates every **12 hours** for open **P1/P2** tickets.
+- Customers receive **weekly** status updates for enhancement requests.
+- No ticket is closed without customer confirmation **or 5 business days of inactivity**.
+- All customer requests — regardless of source (email, meeting, phone, Teams, Slack,
+  founder conversation) — **must be logged in Zoho Desk**.
