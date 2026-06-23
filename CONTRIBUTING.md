@@ -59,5 +59,6 @@ Keep PRs **small and focused** — one logical change each. Easier to review, ea
 
 ## Before you push
 
-- Run the offline checks: `python mapping.py` and `python demo.py`.
+- Run the test suite: `python -m pytest` (install dev deps once with
+  `pip install -r requirements-dev.txt`). All tests must pass.
 - Never run the poller **live** before a `python poller.py --dry-run --once` looks right.
