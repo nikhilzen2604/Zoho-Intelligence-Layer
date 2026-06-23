@@ -60,4 +60,12 @@ def test_enhancement_flagged_for_product_review():
     assert p.field_updates == {"category": "Enhancement"}
     assert "needs-product-review" in p.tags
     assert "priority" not in p.field_updates  # no support SLA
+    assert p.assign_to_reviewer is True       # handed to the product reviewer
     assert p.comment
+
+
+def test_only_enhancement_is_assigned_to_reviewer():
+    # assignment must NOT happen for support/redirect/review
+    for disp in (Disposition.redirect, Disposition.review):
+        c = Classification(disposition=disp, confidence=0.9, reasoning="x")
+        assert plan_actions(c).assign_to_reviewer is False
