@@ -27,7 +27,13 @@ from zoho_client import ZohoClient
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_FILE = PROJECT_ROOT / "processed_ids.json"
 ALREADY_TAG = "ai:classified"
-REVIEWER_EMAIL = os.getenv("ENHANCEMENT_ASSIGNEE_EMAIL")
+
+# logical owner role -> the agent email that should own such tickets
+ASSIGNEE_EMAILS = {
+    "reviewer": os.getenv("ENHANCEMENT_ASSIGNEE_EMAIL"),       # enhancements
+    "support_high": os.getenv("SUPPORT_HIGH_ASSIGNEE_EMAIL"),  # P1/P2 support
+    "support_low": os.getenv("SUPPORT_LOW_ASSIGNEE_EMAIL"),    # P3/P4 support
+}
 
 
 def _load_processed() -> set[str]:
@@ -91,13 +97,17 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
                 client.add_tags(tid, plan.tags)
             if plan.comment:
                 client.add_comment(tid, plan.comment, is_public=False)
-            if plan.assign_to_reviewer and REVIEWER_EMAIL:
-                aid = client.get_agent_id(REVIEWER_EMAIL)
-                if aid:
-                    client.update_ticket(tid, {"assigneeId": aid})
-                    print(f"     assigned to reviewer {REVIEWER_EMAIL}")
+            if plan.assignee_role:
+                email = ASSIGNEE_EMAILS.get(plan.assignee_role)
+                if not email:
+                    print(f"     WARNING: no email configured for role '{plan.assignee_role}'")
                 else:
-                    print(f"     WARNING: reviewer {REVIEWER_EMAIL} not found; not assigned")
+                    aid = client.get_agent_id(email)
+                    if aid:
+                        client.update_ticket(tid, {"assigneeId": aid})
+                        print(f"     assigned to {email}")
+                    else:
+                        print(f"     WARNING: {email} is not an active agent; not assigned")
             if plan.redirect_to:
                 print(f"     NOTE: redirect intent to {plan.redirect_to} (auto-forward not yet built)")
 

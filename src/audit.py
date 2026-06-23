@@ -47,6 +47,7 @@ def log_decision(ticket: dict, c: Classification, plan: ActionPlan,
             "redirect_to": plan.redirect_to,
             "needs_review": plan.needs_review,
             "pending_decision": plan.pending_decision,
+            "assignee_role": plan.assignee_role,
             "comment": plan.comment,
         },
     }
