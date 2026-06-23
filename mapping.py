@@ -40,6 +40,7 @@ class ActionPlan:
     redirect_to: Optional[str] = None                    # forward target (intent only)
     needs_review: bool = False                           # park for a human
     pending_decision: bool = False                       # handling deliberately undecided
+    assign_to_reviewer: bool = False                     # hand to the product reviewer
 
 
 def _audit_comment(c: Classification) -> str:
@@ -98,6 +99,7 @@ def plan_actions(c: Classification) -> ActionPlan:
             field_updates={"category": "Enhancement"},
             tags=["ai-classified", "needs-product-review"],
             comment=comment,
+            assign_to_reviewer=True,
         )
 
     # unreachable, but stay safe: anything unexpected goes to a human

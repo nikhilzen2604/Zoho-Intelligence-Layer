@@ -41,6 +41,7 @@ class ZohoClient:
                 raise ZohoError(f"{name} is not set (see .env.example)")
         self._access_token: Optional[str] = None
         self._expires_at: float = 0.0
+        self._agent_cache: dict = {}
 
     # --- auth ---------------------------------------------------------------
 
@@ -107,6 +108,21 @@ class ZohoClient:
             "POST", f"/tickets/{ticket_id}/comments",
             json={"content": content, "isPublic": is_public},
         )
+
+    def get_agent_id(self, email: str) -> Optional[str]:
+        """Resolve an agent's id from their email (None if no such active agent).
+        Cached per client instance to avoid re-listing agents every ticket."""
+        key = email.lower()
+        if key in self._agent_cache:
+            return self._agent_cache[key]
+        data = self._request("GET", "/agents")
+        agent_id = None
+        for a in (data or {}).get("data", []):
+            if (a.get("emailId") or "").lower() == key:
+                agent_id = a.get("id")
+                break
+        self._agent_cache[key] = agent_id
+        return agent_id
 
     def add_tags(self, ticket_id: str, tags: list[str]) -> Any:
         """Associate tags with a ticket. Zoho's associateTag wants a list of plain

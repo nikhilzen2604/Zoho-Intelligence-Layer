@@ -15,6 +15,7 @@ tickets already tagged 'ai:classified' in Zoho are skipped too.
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from zoho_client import ZohoClient
 
 PROCESSED_FILE = Path(__file__).with_name("processed_ids.json")
 ALREADY_TAG = "ai:classified"
+REVIEWER_EMAIL = os.getenv("ENHANCEMENT_ASSIGNEE_EMAIL")
 
 
 def _load_processed() -> set[str]:
@@ -88,6 +90,13 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
                 client.add_tags(tid, plan.tags)
             if plan.comment:
                 client.add_comment(tid, plan.comment, is_public=False)
+            if plan.assign_to_reviewer and REVIEWER_EMAIL:
+                aid = client.get_agent_id(REVIEWER_EMAIL)
+                if aid:
+                    client.update_ticket(tid, {"assigneeId": aid})
+                    print(f"     assigned to reviewer {REVIEWER_EMAIL}")
+                else:
+                    print(f"     WARNING: reviewer {REVIEWER_EMAIL} not found; not assigned")
             if plan.redirect_to:
                 print(f"     NOTE: redirect intent to {plan.redirect_to} (auto-forward not yet built)")
 
