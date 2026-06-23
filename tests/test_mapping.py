@@ -53,11 +53,11 @@ def test_review():
     assert p.needs_review is True
 
 
-def test_enhancement_is_hands_off():
-    # the enhancement path must touch NOTHING but still leave a record (rule #1)
+def test_enhancement_flagged_for_product_review():
+    # enhancements go to product review, NOT the support queue, and get no SLA
     c = Classification(disposition=Disposition.enhancement, confidence=0.95, reasoning="x")
     p = plan_actions(c)
-    assert p.field_updates == {}
-    assert p.tags == []
-    assert p.pending_decision is True
+    assert p.field_updates == {"category": "Enhancement"}
+    assert "needs-product-review" in p.tags
+    assert "priority" not in p.field_updates  # no support SLA
     assert p.comment
