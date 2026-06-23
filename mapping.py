@@ -6,8 +6,12 @@ zoho_client. That keeps routing logic fully unit-testable with no Zoho access.
 
 Free-tier-safe by design: the decision is written into Zoho's BUILT-IN ticket
 fields (priority, classification, category) plus a private comment. Built-in fields
-are reliable, readable, and survive when the Enterprise trial downgrades to free.
-(Tags were tried first and silently failed to persist, so they are not used.)
+are reliable, code-readable, and survive when the Enterprise trial downgrades to free.
+
+Tags are ALSO written, but only as human-facing routing labels: Zoho does not expose
+`category` as a custom-view filter, whereas Tags IS filterable. So the team builds
+views like "Needs Review" on the `needs-review` tag. Tags are not code-readable, so
+they are never relied on as the machine record — that is the built-in fields' job.
 """
 
 from dataclasses import dataclass, field
@@ -31,6 +35,7 @@ _ZOHO_CLASSIFICATION = {
 class ActionPlan:
     """What poller.py should do to a ticket. Empty fields = leave that aspect alone."""
     field_updates: dict = field(default_factory=dict)   # built-in fields to PATCH
+    tags: list[str] = field(default_factory=list)        # human-facing routing labels
     comment: Optional[str] = None                        # private audit note
     redirect_to: Optional[str] = None                    # forward target (intent only)
     needs_review: bool = False                           # park for a human
@@ -64,11 +69,13 @@ def plan_actions(c: Classification) -> ActionPlan:
             updates["classification"] = _ZOHO_CLASSIFICATION[c.sub_type]
         if c.priority:
             updates["priority"] = c.priority.value
-        return ActionPlan(field_updates=updates, comment=comment)
+        return ActionPlan(field_updates=updates,
+                          tags=["ai-classified", "ai-support"], comment=comment)
 
     if c.disposition == Disposition.redirect:
         return ActionPlan(
             field_updates={"category": "Redirect"},
+            tags=["ai-classified", "redirect"],
             comment=comment,
             redirect_to=c.redirect_to,
         )
@@ -76,6 +83,7 @@ def plan_actions(c: Classification) -> ActionPlan:
     if c.disposition == Disposition.review:
         return ActionPlan(
             field_updates={"category": "Needs Review"},
+            tags=["ai-classified", "needs-review"],
             comment=comment,
             needs_review=True,
         )
@@ -89,6 +97,7 @@ def plan_actions(c: Classification) -> ActionPlan:
 
     # unreachable, but stay safe: anything unexpected goes to a human
     return ActionPlan(field_updates={"category": "Needs Review"},
+                      tags=["ai-classified", "needs-review"],
                       comment=comment, needs_review=True)
 
 
@@ -106,7 +115,7 @@ if __name__ == "__main__":
     ]
     for c in samples:
         p = plan_actions(c)
-        print(f"\n[{c.disposition.value}] -> fields={p.field_updates} "
+        print(f"\n[{c.disposition.value}] -> fields={p.field_updates} tags={p.tags} "
               f"redirect={p.redirect_to} review={p.needs_review} pending={p.pending_decision}")
         print("  comment:")
         for line in p.comment.splitlines():
