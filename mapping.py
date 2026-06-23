@@ -15,14 +15,9 @@ from typing import Optional
 
 from classifier import Classification, Disposition, Priority, SubType
 
-# Our SLA priority (P1-P4) -> Zoho's built-in priority picklist (High/Medium/Low).
-# Exact P1-P4 is never lost: it is also written into the audit comment.
-_ZOHO_PRIORITY = {
-    Priority.P1: "High",
-    Priority.P2: "High",
-    Priority.P3: "Medium",
-    Priority.P4: "Low",
-}
+# Priority is written into Zoho's built-in Priority field as the exact P1-P4 value.
+# The field accepts these directly, so P1 vs P2 stays distinct and filterable in the
+# UI (Zoho's default High/Medium/Low would collapse P1 and P2 into "High").
 
 # Our sub_type -> Zoho's built-in classification picklist.
 _ZOHO_CLASSIFICATION = {
@@ -68,7 +63,7 @@ def plan_actions(c: Classification) -> ActionPlan:
         if c.sub_type:
             updates["classification"] = _ZOHO_CLASSIFICATION[c.sub_type]
         if c.priority:
-            updates["priority"] = _ZOHO_PRIORITY[c.priority]
+            updates["priority"] = c.priority.value
         return ActionPlan(field_updates=updates, comment=comment)
 
     if c.disposition == Disposition.redirect:
