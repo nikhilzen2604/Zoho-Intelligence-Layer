@@ -24,7 +24,8 @@ from classifier import classify
 from mapping import plan_actions
 from zoho_client import ZohoClient
 
-PROCESSED_FILE = Path(__file__).with_name("processed_ids.json")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROCESSED_FILE = PROJECT_ROOT / "processed_ids.json"
 ALREADY_TAG = "ai:classified"
 REVIEWER_EMAIL = os.getenv("ENHANCEMENT_ASSIGNEE_EMAIL")
 
