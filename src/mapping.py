@@ -44,20 +44,22 @@ class ActionPlan:
 
 
 def _audit_comment(c: Classification) -> str:
-    """Human/auditable record of the decision, posted as a private note."""
-    lines = [
-        "[AI classification]",
-        f"disposition: {c.disposition.value}",
-    ]
+    """Human/auditable record of the decision, posted as a private note.
+
+    Formatted as HTML: Zoho renders comments as HTML and collapses plain
+    newlines, so we use <br> to keep each field on its own readable line.
+    """
+    rows = [("Disposition", c.disposition.value)]
     if c.sub_type:
-        lines.append(f"sub_type: {c.sub_type.value}")
+        rows.append(("Sub-type", c.sub_type.value))
     if c.priority:
-        lines.append(f"priority: {c.priority.value}")
+        rows.append(("Priority", c.priority.value))
     if c.redirect_to:
-        lines.append(f"redirect_to: {c.redirect_to}")
-    lines.append(f"confidence: {c.confidence:.2f}")
-    lines.append(f"reasoning: {c.reasoning}")
-    return "\n".join(lines)
+        rows.append(("Redirect to", c.redirect_to))
+    rows.append(("Confidence", f"{c.confidence:.2f}"))
+    rows.append(("Reasoning", c.reasoning))
+    body = "<br>".join(f"<b>{label}:</b> {value}" for label, value in rows)
+    return f"<b>AI classification</b><br><br>{body}"
 
 
 def plan_actions(c: Classification) -> ActionPlan:

@@ -103,10 +103,10 @@ class ZohoClient:
         return self._request("PATCH", f"/tickets/{ticket_id}", json=fields)
 
     def add_comment(self, ticket_id: str, content: str, is_public: bool = False) -> dict:
-        """Add a comment/note. Private by default (internal audit note)."""
+        """Add a comment/note (HTML). Private by default (internal audit note)."""
         return self._request(
             "POST", f"/tickets/{ticket_id}/comments",
-            json={"content": content, "isPublic": is_public},
+            json={"content": content, "isPublic": is_public, "contentType": "html"},
         )
 
     def get_agent_id(self, email: str) -> Optional[str]:
