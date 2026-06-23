@@ -61,4 +61,13 @@ Keep PRs **small and focused** — one logical change each. Easier to review, ea
 
 - Run the test suite: `python -m pytest` (install dev deps once with
   `pip install -r requirements-dev.txt`). All tests must pass.
-- Never run the poller **live** before a `python poller.py --dry-run --once` looks right.
+- Never run the poller **live** before a `python src/poller.py --dry-run --once` looks right.
+
+## Project layout
+
+```
+src/    application modules (classifier, mapping, zoho_client, poller, audit, demo)
+tests/  pytest unit tests
+docs/   README and this guide
+run_poller.bat   Task Scheduler entry point (stays at repo root)
+```

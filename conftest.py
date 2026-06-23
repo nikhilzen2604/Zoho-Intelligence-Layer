@@ -1,2 +1,6 @@
-# Presence of this file at the project root puts the root on sys.path, so tests
-# under tests/ can `import classifier`, `import mapping`, etc. No fixtures needed yet.
+import os
+import sys
+
+# Put src/ on sys.path so tests can `import classifier`, `import mapping`, etc.
+# The app modules now live under src/.
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))

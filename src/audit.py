@@ -14,7 +14,7 @@ from pathlib import Path
 from classifier import Classification
 from mapping import ActionPlan
 
-AUDIT_FILE = Path(__file__).with_name("audit.jsonl")
+AUDIT_FILE = Path(__file__).resolve().parent.parent / "audit.jsonl"
 
 
 def _from_email(ticket: dict) -> str:
