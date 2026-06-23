@@ -40,7 +40,7 @@ class ActionPlan:
     redirect_to: Optional[str] = None                    # forward target (intent only)
     needs_review: bool = False                           # park for a human
     pending_decision: bool = False                       # handling deliberately undecided
-    assign_to_reviewer: bool = False                     # hand to the product reviewer
+    assignee_role: Optional[str] = None                  # logical owner role; poller maps to an email
 
 
 def _audit_comment(c: Classification) -> str:
@@ -70,10 +70,14 @@ def plan_actions(c: Classification) -> ActionPlan:
         updates = {"category": "Support"}
         if c.sub_type:
             updates["classification"] = _ZOHO_CLASSIFICATION[c.sub_type]
+        role = None
         if c.priority:
             updates["priority"] = c.priority.value
+            # urgent (P1/P2) -> a dedicated owner; routine (P3/P4) -> the shared queue
+            role = "support_high" if c.priority in (Priority.P1, Priority.P2) else "support_low"
         return ActionPlan(field_updates=updates,
-                          tags=["ai-classified", "ai-support"], comment=comment)
+                          tags=["ai-classified", "ai-support"], comment=comment,
+                          assignee_role=role)
 
     if c.disposition == Disposition.redirect:
         return ActionPlan(
@@ -101,7 +105,7 @@ def plan_actions(c: Classification) -> ActionPlan:
             field_updates={"category": "Enhancement"},
             tags=["ai-classified", "needs-product-review"],
             comment=comment,
-            assign_to_reviewer=True,
+            assignee_role="reviewer",
         )
 
     # unreachable, but stay safe: anything unexpected goes to a human

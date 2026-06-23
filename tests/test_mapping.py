@@ -35,6 +35,14 @@ def test_priority_is_exact_p_level_not_high_low():
     assert plan_actions(_support(SubType.incident, Priority.P2)).field_updates["priority"] == "P2"
 
 
+def test_support_routing_by_priority():
+    # urgent (P1/P2) -> support_high; routine (P3/P4) -> support_low
+    assert plan_actions(_support(SubType.incident, Priority.P1)).assignee_role == "support_high"
+    assert plan_actions(_support(SubType.incident, Priority.P2)).assignee_role == "support_high"
+    assert plan_actions(_support(SubType.question, Priority.P3)).assignee_role == "support_low"
+    assert plan_actions(_support(SubType.question, Priority.P4)).assignee_role == "support_low"
+
+
 def test_redirect():
     c = Classification(disposition=Disposition.redirect, redirect_to="hello@zenalyst.ai",
                        confidence=0.9, reasoning="x")
@@ -60,12 +68,11 @@ def test_enhancement_flagged_for_product_review():
     assert p.field_updates == {"category": "Enhancement"}
     assert "needs-product-review" in p.tags
     assert "priority" not in p.field_updates  # no support SLA
-    assert p.assign_to_reviewer is True       # handed to the product reviewer
+    assert p.assignee_role == "reviewer"      # handed to the product reviewer
     assert p.comment
 
 
-def test_only_enhancement_is_assigned_to_reviewer():
-    # assignment must NOT happen for support/redirect/review
+def test_redirect_and_review_have_no_assignee():
     for disp in (Disposition.redirect, Disposition.review):
         c = Classification(disposition=disp, confidence=0.9, reasoning="x")
-        assert plan_actions(c).assign_to_reviewer is False
+        assert plan_actions(c).assignee_role is None
