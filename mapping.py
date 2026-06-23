@@ -89,11 +89,16 @@ def plan_actions(c: Classification) -> ActionPlan:
         )
 
     # --- enhancement ---------------------------------------------------------
-    # TODO(decide): the enhancement flow is intentionally NOT implemented yet —
-    # the user wants to revisit it. We touch NO fields here. We only leave a record
-    # so the ticket is never silently dropped (rule #1). Revisit before go-live.
+    # Feature requests do NOT enter the support queue and get NO SLA (no priority).
+    # They are flagged for product review and surfaced in the "Enhancements" view.
+    # Phase 2 (once the reviewer's agent account is active) adds auto-assign to the
+    # reviewer and an auto-acknowledgement reply to the customer.
     if c.disposition == Disposition.enhancement:
-        return ActionPlan(comment=comment, pending_decision=True)
+        return ActionPlan(
+            field_updates={"category": "Enhancement"},
+            tags=["ai-classified", "needs-product-review"],
+            comment=comment,
+        )
 
     # unreachable, but stay safe: anything unexpected goes to a human
     return ActionPlan(field_updates={"category": "Needs Review"},
