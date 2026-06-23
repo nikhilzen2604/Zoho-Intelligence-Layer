@@ -59,41 +59,46 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
     for t in tickets:
         tid = str(t.get("id"))
         num = t.get("ticketNumber")
-        if tid in processed or _already_classified(t):
-            print(f"  #{num}: skip (already classified)")
-            continue
+        try:
+            if tid in processed or _already_classified(t):
+                print(f"  #{num}: skip (already classified)")
+                continue
 
-        subject, body, from_email = _ticket_text(t)
-        c = classify(subject, body, from_email)
-        plan = plan_actions(c)
+            subject, body, from_email = _ticket_text(t)
+            c = classify(subject, body, from_email)
+            plan = plan_actions(c)
 
-        head = f"  #{num} {subject!r} -> {c.disposition.value}"
-        if c.priority:
-            head += f"/{c.priority.value}"
-        print(head + f"  (conf {c.confidence:.2f})")
-        print(f"     plan: fields={plan.field_updates} tags={plan.tags}"
-              f" redirect={plan.redirect_to} review={plan.needs_review}"
-              f" pending={plan.pending_decision}")
+            head = f"  #{num} {subject!r} -> {c.disposition.value}"
+            if c.priority:
+                head += f"/{c.priority.value}"
+            print(head + f"  (conf {c.confidence:.2f})")
+            print(f"     plan: fields={plan.field_updates} tags={plan.tags}"
+                  f" redirect={plan.redirect_to} review={plan.needs_review}"
+                  f" pending={plan.pending_decision}")
 
-        if dry_run:
-            print("     DRY-RUN: nothing written")
-            audit.log_decision(t, c, plan, mode="dry-run", applied=False)
-            continue
+            if dry_run:
+                print("     DRY-RUN: nothing written")
+                audit.log_decision(t, c, plan, mode="dry-run", applied=False)
+                continue
 
-        # --- live writes ---
-        if plan.field_updates:
-            client.update_ticket(tid, plan.field_updates)
-        if plan.tags:
-            client.add_tags(tid, plan.tags)
-        if plan.comment:
-            client.add_comment(tid, plan.comment, is_public=False)
-        if plan.redirect_to:
-            print(f"     NOTE: redirect intent to {plan.redirect_to} (auto-forward not yet built)")
+            # --- live writes ---
+            if plan.field_updates:
+                client.update_ticket(tid, plan.field_updates)
+            if plan.tags:
+                client.add_tags(tid, plan.tags)
+            if plan.comment:
+                client.add_comment(tid, plan.comment, is_public=False)
+            if plan.redirect_to:
+                print(f"     NOTE: redirect intent to {plan.redirect_to} (auto-forward not yet built)")
 
-        processed.add(tid)
-        _save_processed(processed)
-        audit.log_decision(t, c, plan, mode="live", applied=True)
-        print("     applied + logged")
+            processed.add(tid)
+            _save_processed(processed)
+            audit.log_decision(t, c, plan, mode="live", applied=True)
+            print("     applied + logged")
+        except Exception as e:
+            # one bad ticket or API hiccup must not stop the rest of the run.
+            # it is NOT added to `processed`, so it gets retried on the next pass.
+            print(f"  #{num}: ERROR - {e}  (skipped; will retry next pass)")
 
 
 def main() -> None:
@@ -117,7 +122,11 @@ def main() -> None:
         return
 
     while True:
-        process_once(client, args.dry_run, args.limit)
+        try:
+            process_once(client, args.dry_run, args.limit)
+        except Exception as e:
+            # a transient failure (e.g. network/list call) must not kill the daemon
+            print(f"pass failed: {e}  (continuing)")
         print(f"sleeping {args.interval} min...")
         time.sleep(args.interval * 60)
 
