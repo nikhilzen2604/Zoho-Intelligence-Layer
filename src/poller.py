@@ -88,6 +88,9 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
                 print(f"  #{num}: skip (already classified)")
                 continue
 
+            # the list endpoint omits the body/description, so fetch the full record
+            # before classifying — the AI needs the actual message, not just the subject.
+            t = client.get_ticket(tid)
             subject, body, from_email = _ticket_text(t)
             c = classify(subject, body, from_email)
             plan = plan_actions(c)
