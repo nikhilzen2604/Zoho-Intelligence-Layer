@@ -76,3 +76,17 @@ def test_redirect_and_review_have_no_assignee():
     for disp in (Disposition.redirect, Disposition.review):
         c = Classification(disposition=disp, confidence=0.9, reasoning="x")
         assert plan_actions(c).assignee_role is None
+
+
+def test_github_issue_only_for_incidents_and_enhancements():
+    # incident (bug) -> yes
+    inc = plan_actions(_support(SubType.incident, Priority.P2))
+    assert inc.github_issue is True and "bug" in inc.github_labels
+    # enhancement -> yes
+    enh = plan_actions(Classification(disposition=Disposition.enhancement, confidence=0.95, reasoning="x"))
+    assert enh.github_issue is True and "enhancement" in enh.github_labels
+    # service_request, question, redirect, review -> no
+    assert plan_actions(_support(SubType.service_request, Priority.P3)).github_issue is False
+    assert plan_actions(_support(SubType.question, Priority.P4)).github_issue is False
+    for disp in (Disposition.redirect, Disposition.review):
+        assert plan_actions(Classification(disposition=disp, confidence=0.9, reasoning="x")).github_issue is False

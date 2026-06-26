@@ -20,6 +20,7 @@ import time
 from pathlib import Path
 
 import audit
+import github_client
 from classifier import classify
 from mapping import plan_actions
 from zoho_client import ZohoClient
@@ -52,6 +53,20 @@ def _ticket_text(t: dict) -> tuple[str, str, str]:
     body = t.get("description") or ""
     from_email = t.get("email") or (t.get("contact") or {}).get("email") or ""
     return subject, body, from_email
+
+
+def _github_body(t: dict, c) -> str:
+    """Body for the GitHub issue: classification summary + the original message,
+    with a pointer back to the Zoho ticket for traceability."""
+    sub = f" / {c.sub_type.value}" if c.sub_type else ""
+    pri = f" / {c.priority.value}" if c.priority else ""
+    subject, body, from_email = _ticket_text(t)
+    return (
+        f"Auto-created from Zoho Desk ticket #{t.get('ticketNumber')}.\n\n"
+        f"**From:** {from_email or '-'}\n"
+        f"**Classification:** {c.disposition.value}{sub}{pri}\n\n"
+        f"**Message:**\n{body or '(no body)'}"
+    )
 
 
 def _already_classified(t: dict) -> bool:
@@ -108,6 +123,18 @@ def process_once(client: ZohoClient, dry_run: bool, limit: int) -> None:
                         print(f"     assigned to {email}")
                     else:
                         print(f"     WARNING: {email} is not an active agent; not assigned")
+            if plan.github_issue and github_client.is_configured():
+                try:
+                    url = github_client.create_issue(
+                        title=f"[{c.disposition.value}] {subject}",
+                        body=_github_body(t, c),
+                        labels=plan.github_labels,
+                    )
+                    client.add_comment(tid, f"GitHub issue created: {url}", is_public=False)
+                    print(f"     github issue: {url}")
+                except Exception as e:
+                    # a GitHub hiccup must not block the rest of the ticket's processing
+                    print(f"     WARNING: github issue failed: {e}")
             if plan.redirect_to:
                 print(f"     NOTE: redirect intent to {plan.redirect_to} (auto-forward not yet built)")
 
