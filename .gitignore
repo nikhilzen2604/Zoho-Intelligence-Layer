@@ -13,3 +13,4 @@ venv/
 *.log
 audit*.jsonl
 processed_ids.json
+.token_cache.json
