@@ -84,7 +84,7 @@ def plan_actions(c: Classification) -> ActionPlan:
                           tags=["ai-classified", "ai-support"], comment=comment,
                           assignee_role=role,
                           github_issue=is_bug,
-                          github_labels=["bug", "needs-triage"] if is_bug else [])
+                          github_labels=["bug", "unreviewed"] if is_bug else [])
 
     if c.disposition == Disposition.redirect:
         return ActionPlan(
@@ -114,7 +114,7 @@ def plan_actions(c: Classification) -> ActionPlan:
             comment=comment,
             assignee_role="reviewer",
             github_issue=True,
-            github_labels=["enhancement", "needs-triage"],
+            github_labels=["enhancement", "unreviewed"],
         )
 
     # unreachable, but stay safe: anything unexpected goes to a human
