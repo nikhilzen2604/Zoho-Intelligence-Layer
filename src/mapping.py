@@ -41,6 +41,8 @@ class ActionPlan:
     needs_review: bool = False                           # park for a human
     pending_decision: bool = False                       # handling deliberately undecided
     assignee_role: Optional[str] = None                  # logical owner role; poller maps to an email
+    github_issue: bool = False                           # mirror to the GitHub backlog
+    github_labels: list[str] = field(default_factory=list)
 
 
 def _audit_comment(c: Classification) -> str:
@@ -75,9 +77,14 @@ def plan_actions(c: Classification) -> ActionPlan:
             updates["priority"] = c.priority.value
             # urgent (P1/P2) -> a dedicated owner; routine (P3/P4) -> the shared queue
             role = "support_high" if c.priority in (Priority.P1, Priority.P2) else "support_low"
+        # only incidents (bugs) go to the engineering backlog; service requests and
+        # questions are support work, not code work.
+        is_bug = c.sub_type == SubType.incident
         return ActionPlan(field_updates=updates,
                           tags=["ai-classified", "ai-support"], comment=comment,
-                          assignee_role=role)
+                          assignee_role=role,
+                          github_issue=is_bug,
+                          github_labels=["bug", "needs-triage"] if is_bug else [])
 
     if c.disposition == Disposition.redirect:
         return ActionPlan(
@@ -106,6 +113,8 @@ def plan_actions(c: Classification) -> ActionPlan:
             tags=["ai-classified", "needs-product-review"],
             comment=comment,
             assignee_role="reviewer",
+            github_issue=True,
+            github_labels=["enhancement", "needs-triage"],
         )
 
     # unreachable, but stay safe: anything unexpected goes to a human
